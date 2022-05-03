@@ -1,26 +1,25 @@
+version: "3.9"
+
 services:
-  server:
-    build: ./server
+  api:
+    build: ./api
     ports:
       - "8000:8000"
-    links:
-      - db
     depends_on:
       - db
-    working_dir: /code
     volumes:
-      - ./server:/code
+      - ./api:/code
     environment:
       DB_HOST: db
-    env_file:
-      - .env
+      DB_PORT: 27017
+      DB_NAME: project
+
   db:
     image: mongo:latest
     volumes:
       - database-storage:/run/db
     ports:
       - 27017:27017
-    logging:
-      driver: "none"
+
 volumes:
     database-storage:
