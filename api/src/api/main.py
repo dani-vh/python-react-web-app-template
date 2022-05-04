@@ -23,10 +23,12 @@ logger = logging.getLogger(__name__)
 
 @lru_cache
 async def db_config() -> DatabaseConfig:
-    return DatabaseConfig()  # type: ignore
+    return DatabaseConfig()  # type: ignore[missing-parameter]
 
 
-async def database(config: DatabaseConfig = Depends(db_config)) -> AsyncIOMotorDatabase:  # type: ignore
+async def database(
+    config: DatabaseConfig = Depends(db_config),  # type: ignore[assignment]
+) -> AsyncIOMotorDatabase:
     """
     Grab yourself a database connection.
     """
