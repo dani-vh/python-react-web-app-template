@@ -26,7 +26,7 @@ def client(app):
 
 
 def test_get_root(client: TestClient):
-    response = client.get("/")
+    response = client.get("/api")
     assert response.status_code == 200
     assert response.json() == {
         "description": "An API built to interact with BIOS synchronized data."
@@ -36,4 +36,4 @@ def test_get_root(client: TestClient):
 def test_get_items(client: TestClient):
     # Since we're not running an actual test database
     with pytest.raises(ValueError):
-        client.get("/test/items")
+        client.get("/api/items")
