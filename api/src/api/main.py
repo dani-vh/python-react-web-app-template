@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 @lru_cache
-async def db_config() -> DatabaseConfig:
+def db_config() -> DatabaseConfig:
     # NOTE: If we don't specify any of the parameters, we get all of them from the environment
     return DatabaseConfig()  # type: ignore[missing-parameter]
 
@@ -47,22 +47,22 @@ class Item(BaseModel):
     tax: Optional[float] = None
 
 
-router = APIRouter()
+router = APIRouter(prefix="/api")
 
 
-@router.get("/")
+@router.get("")
 async def read_root():
     return {"description": "An API built to interact with BIOS synchronized data."}
 
 
-@router.get("/test/items")
+@router.get("/items")
 async def list_items(database: AsyncIOMotorDatabase = Depends(database)):
     cursor = database.items.find()
     items = [{**i, "_id": str(i.get("_id"))} async for i in cursor]
     return items
 
 
-@router.post("/test/items")
+@router.post("/items")
 async def create_item(item: Item, database: AsyncIOMotorDatabase = Depends(database)):
     result = await database.items.insert_one(item.dict())
     return str(result.inserted_id)

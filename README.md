@@ -20,4 +20,4 @@ Finally follow the logs via:
 docker-compose logs --follow api
 ```
 
-The server will be running at `localhost:8000`, all the changes in there will be reflected immediately.
+The server will be running at `localhost:8080`, all the changes in there will be reflected immediately.

@@ -1,10 +1,18 @@
 version: "3.9"
 
 services:
+  proxy:
+    image: nginx:alpine
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - 8080:8080
+    depends_on:
+      - ui
+      - api
+
   api:
     build: ./api
-    ports:
-      - "8000:8000"
     depends_on:
       - db
     volumes:
@@ -14,12 +22,32 @@ services:
       DB_PORT: 27017
       DB_NAME: project
 
+  ui:
+    image: node:18
+    working_dir: /src/app
+    volumes:
+      - ./ui:/src/app
+      - node-cache:/src/app/node_modules
+    command: npm start
+    depends_on:
+      npm-installer:
+        condition: service_completed_successfully
+    environment:
+      WDS_SOCKET_PORT: 8080
+
   db:
     image: mongo:latest
     volumes:
       - database-storage:/run/db
-    ports:
-      - 27017:27017
+
+  npm-installer:
+    image: node:14
+    working_dir: /src/app
+    volumes:
+      - ./ui:/src/app
+      - node-cache:/src/app/node_modules
+    command: npm install
 
 volumes:
-    database-storage:
+  database-storage:
+  node-cache:
