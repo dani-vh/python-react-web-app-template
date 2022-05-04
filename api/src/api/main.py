@@ -1,5 +1,5 @@
-from functools import lru_cache
 import logging
+from functools import lru_cache
 from typing import Optional
 
 from fastapi import APIRouter, FastAPI
@@ -23,10 +23,12 @@ logger = logging.getLogger(__name__)
 
 @lru_cache
 async def db_config() -> DatabaseConfig:
+    # NOTE: If we don't specify any of the parameters, we get all of them from the environment
     return DatabaseConfig()  # type: ignore[missing-parameter]
 
 
 async def database(
+    # NOTE: Types are not going to match Depends as it is
     config: DatabaseConfig = Depends(db_config),  # type: ignore[assignment]
 ) -> AsyncIOMotorDatabase:
     """
