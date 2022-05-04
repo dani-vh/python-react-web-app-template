@@ -1,26 +1,39 @@
-import os
+from functools import lru_cache
 import logging
 from typing import Optional
+
+from fastapi import APIRouter, FastAPI
 from fastapi.params import Depends
-
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
-from fastapi import FastAPI
-from pydantic import BaseModel
-
-logger = logging.getLogger()
+from pydantic import BaseModel, BaseSettings
 
 
-async def database() -> AsyncIOMotorDatabase:
+class DatabaseConfig(BaseSettings):
+    host: str
+    port: str
+    name: str
+
+    class Config:
+        env_prefix = "DB_"
+        case_sensitive = False
+
+
+logger = logging.getLogger(__name__)
+
+
+@lru_cache
+async def db_config() -> DatabaseConfig:
+    return DatabaseConfig()  # type: ignore
+
+
+async def database(config: DatabaseConfig = Depends(db_config)) -> AsyncIOMotorDatabase:  # type: ignore
     """
     Grab yourself a database connection.
     """
-    host = os.getenv("DB_HOST")
-    port = os.getenv("DB_PORT")
-    name = os.getenv("DB_NAME")
-    logger.info("Connecting database on host %r and port %r", host, port)
-    client = AsyncIOMotorClient(f"mongodb://{host}:{port}")
-    logger.info("Selecting database %r", name)
-    return client[name]
+    logger.info("Connecting database on host %r and port %r", config.host, config.port)
+    client = AsyncIOMotorClient(f"mongodb://{config.host}:{config.port}")
+    logger.info("Selecting database %r", config.name)
+    return client[config.name]
 
 
 class Item(BaseModel):
@@ -30,22 +43,34 @@ class Item(BaseModel):
     tax: Optional[float] = None
 
 
-app = FastAPI()
+router = APIRouter()
 
 
-@app.get("/")
-def read_root():
+@router.get("/")
+async def read_root():
     return {"description": "An API built to interact with BIOS synchronized data."}
 
 
-@app.post("/test/item")
+@router.get("/test/items")
+async def list_items(database: AsyncIOMotorDatabase = Depends(database)):
+    cursor = database.items.find()
+    items = [{**i, "_id": str(i.get("_id"))} async for i in cursor]
+    return items
+
+
+@router.post("/test/items")
 async def create_item(item: Item, database: AsyncIOMotorDatabase = Depends(database)):
     result = await database.items.insert_one(item.dict())
     return str(result.inserted_id)
 
 
-@app.get("/test/items")
-async def list_items(database: AsyncIOMotorDatabase = Depends(database)):
-    cursor = database.items.find()
-    items = [{**i, "_id": str(i.get("_id"))} async for i in cursor]
-    return items
+def create_app():
+    formatter = logging.Formatter(fmt=logging.BASIC_FORMAT)
+    handler = logging.StreamHandler()
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.setLevel(logging.DEBUG)
+
+    app = FastAPI()
+    app.include_router(router)
+    return app

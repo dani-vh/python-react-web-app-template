@@ -11,7 +11,8 @@ RUN poetry install --no-interaction --no-ansi
 CMD ["poetry", \
     "run", \
     "uvicorn", \
-    "api.main:app", \
+    "--log-level", "debug", \
+    "--factory", "api.main:create_app", \
     "--host", "0.0.0.0", \
     "--port", "8000", \
     "--reload"]
