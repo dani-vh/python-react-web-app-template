@@ -1,7 +1,6 @@
 from fastapi.testclient import TestClient
 import pytest
 
-# FIXME: We should do create_app instead
 from api.main import DatabaseConfig, create_app, db_config
 
 

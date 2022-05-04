@@ -41,7 +41,7 @@ services:
       - database-storage:/run/db
 
   npm-installer:
-    image: node:14
+    image: node:18
     working_dir: /src/app
     volumes:
       - ./ui:/src/app
