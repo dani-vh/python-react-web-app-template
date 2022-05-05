@@ -1,15 +1,17 @@
+# Project template
+
 ## Get started
 
 Docker & Docker Compose are required.
 
-First, lets prepare your environment:
 ```sh
-cp sample.env .env
+docker-compose up --build --detach
 ```
 
-Then, execute the project
+Finally follow the logs via:
+
 ```sh
-docker-compose up
+docker-compose logs --follow api
 ```
 
-The server will be running at `localhost:8000`, all the changes in there will be reflected immediately.
+The server will be running at `localhost:8080`, all the changes in there will be reflected immediately.
